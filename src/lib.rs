@@ -1,3 +1,54 @@
+//! `minigrep` - a tiny `grep`-like tool for searching lines in text files.
+//!
+//! This crate is implements the `minigrep` crate as described by *[The Rust Programming
+//! Language](https://doc.rust-lang.org/book/)* book (chapters 12-13).
+//!
+//! The core search logic is included as reusable functions.
+//!
+//! # Features
+//!
+//! - Simple case-sensitive search via [`search`]
+//! - Optional case-insensitive search via [`search_case_insensitive`]
+//!
+//! # Command-line usage
+//!
+//! The binary expects two positional arguments: a query string and a file path.
+//! Case sensitivity is controlled via the `IGNORE_CASE` environment variable.
+//!
+//! ```bash
+//! IGNORE_CASE=1 minigrep to poem.txt
+//! ```
+//! By default, search is case-insensitive.
+
+/// Search for lines in `contents` that contain `query` (case-sensitive).
+///
+/// This function iterates over all lines of the input and returns those that contain the given
+/// query string as a substring. Matching is done via `srt::contains`.
+///
+/// # Arguments
+///
+/// - `query`: the string to look for
+/// - `contents`: the text to search in, usually the contents of a file
+///
+/// # Returns
+///
+/// A `Vec<&str>` containing references to the matching lines insides `contents`. The returned
+/// slices borrow from `contents`, so `contents` must outlive the result.
+///
+/// # Examples
+///
+/// ```rust
+/// use minigrep::search;
+///
+/// let query = "duct";
+/// let contents = "\
+/// Rust:
+/// safe, fast, productive.
+/// Pick three.";
+///
+/// let matches = search(query, contents);
+/// assert_eq!(matches, vec!["safe, fast, productive."]);
+/// ```
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     contents
         .lines()
@@ -5,6 +56,40 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
         .collect()
 }
 
+/// Search for lines in `contents` that contain `query` (case-insensitive).
+///
+/// This is the case-insensitive counterpart to [`search`]. Both the query and each line are
+/// lowercased before comparison.
+///
+/// This function iterates over all lines of the input and returns those that contain the given
+/// query string as a substring. Matching is done via `srt::contains`.
+///
+/// # Arguments
+///
+/// - `query`: the string to look for
+/// - `contents`: the text to search in, usually the contents of a file
+///
+/// # Returns
+///
+/// A `Vec<&str>` containing references to the matching lines insides `contents`. The returned
+/// slices borrow from `contents`, so `contents` must outlive the result.The matching lines are
+/// returned in their original form (not lowercased).
+///
+/// # Examples
+///
+/// ```rust
+/// use minigrep::search_case_insensitive;
+///
+/// let query = "rUsT";
+/// let contents = "\
+/// Rust:
+/// safe, fast, productive.
+/// Pick three.
+/// Trust me.";
+///
+/// let matches = search_case_insensitive(query, contents);
+/// assert_eq!(matches, vec!["Rust:","Trust me."]);
+/// ```
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = &query.to_lowercase();
 
